@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tracemark"
+version = "0.1.0"
+description = "A step-level annotation tool for labeling failures in AI agent trajectories"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+authors = [{ name = "Shruthi Kubatur" }]
+dependencies = [
+  "pandas>=2.2",
+  "streamlit>=1.36",
+]
+
+[project.optional-dependencies]
+intercode = ["mysql-connector-python>=8.0"]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
