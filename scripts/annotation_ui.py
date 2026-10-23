@@ -8,8 +8,15 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
+import sys
+
 import pandas as pd
 import streamlit as st
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+EXAMPLE_TRACES = REPO_ROOT / "examples" / "normalized.jsonl"
+if str(REPO_ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from tracemark.intercode.sql_eval import (
     MySQLConfig,
@@ -772,12 +779,15 @@ def propagation_from_rows(rows: list[dict[str, Any]]) -> tuple[list[dict[str, An
 @st.cache_resource
 def load_normalized(path: str) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
-    p = Path(path)
-    if not p.exists():
+    if not path or not path.strip():
+        return rows
+    p = Path(path).expanduser()
+    if not p.is_file():
         return rows
     with p.open("r", encoding="utf-8") as f:
         for line in f:
-            rows.append(json.loads(line))
+            if line.strip():
+                rows.append(json.loads(line))
     return rows
 
 
@@ -1428,16 +1438,26 @@ def main() -> None:
     with st.sidebar:
         st.header("Data")
         runs = _discover_runs("outputs")
-        default_run = "webarena_v2" if "webarena_v2" in runs else (runs[0] if runs else "")
+        if not runs and EXAMPLE_TRACES.is_file():
+            runs = ["examples"]
         selected_run = st.selectbox(
             "Dataset / run",
             options=runs if runs else [""],
-            index=(runs.index(default_run) if default_run in runs else 0),
+            index=0,
         )
-        normalized_path, annotations_path = _resolve_paths_for_run(selected_run) if selected_run else ("", "")
+        if selected_run == "examples":
+            normalized_path = str(EXAMPLE_TRACES)
+            annotations_path = "outputs/examples/annotations/labels_v0.jsonl"
+        elif selected_run:
+            normalized_path, annotations_path = _resolve_paths_for_run(selected_run)
+        else:
+            normalized_path, annotations_path = "", ""
 
-        st.caption("Runs are detected from `outputs/<run>/normalized.jsonl` (no detector output required).")
-        with st.expander("Advanced path override", expanded=False):
+        st.caption(
+            "Runs are detected from `outputs/<run>/normalized.jsonl`. "
+            "With none present, the bundled example traces load."
+        )
+        with st.expander("Advanced path override", expanded=not runs):
             normalized_path = st.text_input("normalized.jsonl", normalized_path)
             annotations_path = st.text_input("Label store (JSONL)", annotations_path)
 
@@ -1469,7 +1489,10 @@ def main() -> None:
     annotation_rows = load_annotations(annotations_path)
 
     if not traces:
-        st.error("No normalized traces found at the provided path.")
+        st.error(
+            f"No traces found at `{normalized_path or '(empty path)'}`. "
+            "Set the normalized.jsonl path in the sidebar under Advanced path override."
+        )
         return
 
     trace_by_id = {t["episode_id"]: t for t in traces}
