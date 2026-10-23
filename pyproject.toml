@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tracemark"
-version = "0.1.0"
+version = "0.2.0"
 description = "A step-level annotation tool for labeling failures in AI agent trajectories"
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -12,6 +12,7 @@ requires-python = ">=3.10"
 authors = [{ name = "Shruthi Kubatur" }]
 dependencies = [
   "pandas>=2.2",
+  "pydantic>=2.7",
   "streamlit>=1.36",
 ]
 
@@ -26,5 +27,5 @@ package-dir = { "" = "src" }
 where = ["src"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["src", "tests"]
 testpaths = ["tests"]

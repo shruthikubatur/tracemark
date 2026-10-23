@@ -4,7 +4,7 @@ title: "tracemark: a step-level annotation tool for AI agent trajectory failures
 authors:
   - family-names: Kubatur
     given-names: Shruthi
-version: 0.1.0
+version: 0.2.0
 date-released: 2026-10-23
 license: Apache-2.0
 repository-code: "https://github.com/shruthikubatur/tracemark"

@@ -5,7 +5,7 @@ This document is the checklist for taking a fixed episode list, splitting it int
 Prerequisites:
 
 - Python venv with this repo installed (`pip install -e .`).
-- A **full** `normalized.jsonl` for each dataset you label, in the format described in the main [README.md](../README.md#input-format).
+- A **full** `normalized.jsonl` for each dataset you label, in the format described in the main [README.md](../README.md#input-format). For CRMArena and tau-bench, `scripts/normalize_traces.py` produces it (see the README).
 
 Paths below are **examples**. Replace them with your real directories and filenames.
 

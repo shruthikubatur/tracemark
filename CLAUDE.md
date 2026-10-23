@@ -7,6 +7,8 @@ A local Streamlit tool for labeling failures in AI agent trajectories. Annotator
 - `scripts/annotation_ui.py`: the Streamlit app. Long; read the part you need.
 - `src/tracemark/ontology.py`: the label taxonomy and validation. Single source of truth for label names.
 - `src/tracemark/intercode/`: optional InterCode SQL helpers used by the UI.
+- `src/tracemark/schema/`: the trace schema (pydantic). `datasets/`: adapters for CRMArena and tau-bench, registered in `datasets/__init__.py`.
+- `scripts/normalize_traces.py`: converts raw results into `normalized.jsonl`. `scripts/download_crmarena_results.py`: fetches CRMArena results stored in Git LFS.
 - `scripts/split_golden_manifest.py`, `scripts/filter_normalized_by_manifest.py`: split work between annotators.
 - `examples/normalized.jsonl`: two synthetic traces. The UI loads these when `outputs/` has no runs.
 - `docs/LABELING.md`: labeling workflow and taxonomy descriptions.
@@ -49,7 +51,7 @@ Test the empty case too (no `outputs/` folder). A past bug only showed up there.
 
 Extending tracemark to the Who&When multi-agent failure attribution dataset (Hugging Face `Kevin355/Who_and_When`; paper arXiv 2505.00212). Two subsets: Algorithm-Generated and Hand-Crafted. 184 failure logs annotated with the responsible agent, the decisive error step and an explanation.
 
-- Planned converter: `scripts/convert_who_and_when.py`, writing tracemark's `normalized.jsonl`.
+- Planned approach: a `WhoAndWhenAdapter` in `src/tracemark/datasets/`, subclassing `BaseDatasetAdapter` and registered in `datasets/__init__.py`, so `normalize_traces.py --dataset who_and_when` works like the other datasets. Follow the CRMArena and tau-bench adapters as examples.
 - Verify field names and step indexing from the actual data. Do not assume them.
 - Blind labeling matters. The UI displays episode `metadata`, so the dataset's answers (who failed, when, why) must not go there or anywhere else the UI shows. Store them in a separate sidecar file keyed by `episode_id`, for scoring later.
 - Every Who&When log is a failure, so `final_outcome` is `failure` for all rows.
