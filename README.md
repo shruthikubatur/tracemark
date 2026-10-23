@@ -57,14 +57,14 @@ tracemark includes converters for two public agent benchmarks. Each one turns ra
 | tau-bench (tau2) | `taubench` | A `results.json` file, or a run folder containing one |
 | CRMArena | `crmarena` | A folder of `results_*.json` files |
 
-Write the output to `outputs/<run_name>/normalized.jsonl`. The UI then lists the run in its sidebar dropdown.
+The UI always lists `taubench` and `crmarena` in its sidebar dropdown and reads them from `outputs/taubench/` and `outputs/crmarena/`. Use those output paths, as below. Any other `outputs/<run_name>/normalized.jsonl` also appears as its own run.
 
 **tau-bench**
 
 ```bash
 python scripts/normalize_traces.py --dataset taubench \
   --input path/to/results.json \
-  --output outputs/taubench_run/normalized.jsonl
+  --output outputs/taubench/normalized.jsonl
 ```
 
 **CRMArena.** The result files in the upstream repo are stored with Git LFS. Use the helper to download them first:
@@ -79,7 +79,7 @@ python scripts/download_crmarena_results.py \
 
 python scripts/normalize_traces.py --dataset crmarena \
   --input data/raw/crmarena/b2b_multi_o1 \
-  --output outputs/crmarena_b2b_multi_o1/normalized.jsonl
+  --output outputs/crmarena/normalized.jsonl
 ```
 
 To add another dataset, write an adapter in `src/tracemark/datasets/` that subclasses `BaseDatasetAdapter`, and register it in `src/tracemark/datasets/__init__.py`.

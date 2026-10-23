@@ -87,6 +87,34 @@ def _event_metadata_summary(md: Any, n: int = 120) -> str:
     return _short_json(md, n=n)
 
 
+# Datasets with built-in adapters. They always appear in the run dropdown, and their
+# traces are expected at outputs/<name>/normalized.jsonl.
+BUILTIN_DATASET_HELP = {
+    "taubench": (
+        "python scripts/normalize_traces.py --dataset taubench \\\n"
+        "  --input path/to/results.json \\\n"
+        "  --output outputs/taubench/normalized.jsonl"
+    ),
+    "crmarena": (
+        "git clone https://github.com/SalesforceAIResearch/CRMArena.git /tmp/crmarena\n"
+        "python scripts/download_crmarena_results.py --repo-root /tmp/crmarena \\\n"
+        "  --output-dir data/raw/crmarena\n"
+        "python scripts/normalize_traces.py --dataset crmarena \\\n"
+        "  --input data/raw/crmarena \\\n"
+        "  --output outputs/crmarena/normalized.jsonl"
+    ),
+}
+
+
+def _run_options(discovered: list[str]) -> list[str]:
+    """Discovered runs first, then the bundled examples, then built-in datasets not yet converted."""
+    options = list(discovered)
+    if EXAMPLE_TRACES.is_file():
+        options.append("examples")
+    options.extend(name for name in BUILTIN_DATASET_HELP if name not in discovered)
+    return options
+
+
 def _discover_runs(outputs_root: str = "outputs") -> list[str]:
     root = Path(outputs_root)
     if not root.exists():
@@ -776,8 +804,16 @@ def propagation_from_rows(rows: list[dict[str, Any]]) -> tuple[list[dict[str, An
     return out, errors
 
 
+def _file_version(path: str) -> float:
+    """Modification time, or 0 if missing. Used so caches refresh when a file changes."""
+    try:
+        return Path(path).expanduser().stat().st_mtime
+    except (OSError, ValueError):
+        return 0.0
+
+
 @st.cache_resource
-def load_normalized(path: str) -> list[dict[str, Any]]:
+def load_normalized(path: str, version: float = 0.0) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     if not path or not path.strip():
         return rows
@@ -1437,13 +1473,15 @@ def main() -> None:
 
     with st.sidebar:
         st.header("Data")
-        runs = _discover_runs("outputs")
-        if not runs and EXAMPLE_TRACES.is_file():
-            runs = ["examples"]
+        discovered = _discover_runs("outputs")
+        runs = _run_options(discovered)
         selected_run = st.selectbox(
             "Dataset / run",
             options=runs if runs else [""],
             index=0,
+            format_func=lambda r: f"{r} (not converted yet)"
+            if r in BUILTIN_DATASET_HELP and r not in discovered
+            else r,
         )
         if selected_run == "examples":
             normalized_path = str(EXAMPLE_TRACES)
@@ -1457,7 +1495,7 @@ def main() -> None:
             "Runs are detected from `outputs/<run>/normalized.jsonl`. "
             "With none present, the bundled example traces load."
         )
-        with st.expander("Advanced path override", expanded=not runs):
+        with st.expander("Advanced path override", expanded=not discovered):
             normalized_path = st.text_input("normalized.jsonl", normalized_path)
             annotations_path = st.text_input("Label store (JSONL)", annotations_path)
 
@@ -1485,8 +1523,16 @@ def main() -> None:
             st.success("Label file reset.")
             st.rerun()
 
-    traces = load_normalized(normalized_path)
+    traces = load_normalized(normalized_path, _file_version(normalized_path))
     annotation_rows = load_annotations(annotations_path)
+
+    if not traces and selected_run in BUILTIN_DATASET_HELP and not Path(normalized_path).is_file():
+        st.info(
+            f"No {selected_run} traces yet. Run these commands from the tracemark folder, "
+            "then reload this page."
+        )
+        st.code(BUILTIN_DATASET_HELP[selected_run], language="bash")
+        return
 
     if not traces:
         st.error(
