@@ -54,18 +54,30 @@ tracemark includes converters for two public agent benchmarks. Each one turns ra
 
 | Dataset | `--dataset` | Input |
 |---|---|---|
-| tau-bench (tau2) | `taubench` | A `results.json` file, or a run folder containing one |
+| tau-bench (tau2) | `taubench` | A tau2 results JSON file, or a run folder containing `results.json` |
 | CRMArena | `crmarena` | A folder of `results_*.json` files |
 
 The UI always lists `taubench` and `crmarena` in its sidebar dropdown and reads them from `outputs/taubench/` and `outputs/crmarena/`. Use those output paths, as below. Any other `outputs/<run_name>/normalized.jsonl` also appears as its own run.
 
 **tau-bench**
 
+The [tau2-bench repo](https://github.com/sierra-research/tau2-bench) (MIT license) publishes the trajectories from its paper in `data/tau2/results/final/`. Each file holds one model on one domain, with 4 trials per task. File names follow `<agent model>_<domain>_<mode>_<user model>_4trials.json`. Domains are `airline`, `retail` and `telecom`, plus `telecom-workflow`. Files range from about 8 MB to 50 MB.
+
+Download one file. This example is the smallest: o4-mini on airline, 200 trajectories. The URL is pinned to a fixed commit, so the data does not change under you.
+
 ```bash
+mkdir -p data/raw/taubench
+curl -L -o data/raw/taubench/o4-mini_airline.json \
+  https://raw.githubusercontent.com/sierra-research/tau2-bench/033bf082f48e4a3c6a1256208e93cf2ce9c3bb6f/data/tau2/results/final/o4-mini-2025-04-16_airline_default_gpt-4.1-2025-04-14_4trials.json
+
 python scripts/normalize_traces.py --dataset taubench \
-  --input path/to/results.json \
+  --input data/raw/taubench/o4-mini_airline.json \
   --output outputs/taubench/normalized.jsonl
 ```
+
+To get a different model or domain, replace the file name in the URL. The full list is in [that folder](https://github.com/sierra-research/tau2-bench/tree/033bf082f48e4a3c6a1256208e93cf2ce9c3bb6f/data/tau2/results/final).
+
+Note: these are the June 2025 paper results. The tau2 maintainers later fixed some airline and retail tasks, so those trajectories use the older task versions. Telecom is unchanged. For trajectories on the current tasks, run tau2 yourself (`tau2 run ...`, see its README). It saves results under `data/simulations/`, and this adapter reads those too.
 
 **CRMArena.** The result files in the upstream repo are stored with Git LFS. Use the helper to download them first:
 

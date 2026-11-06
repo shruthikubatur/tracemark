@@ -91,9 +91,15 @@ def _event_metadata_summary(md: Any, n: int = 120) -> str:
 # traces are expected at outputs/<name>/normalized.jsonl.
 BUILTIN_DATASET_HELP = {
     "taubench": (
+        "mkdir -p data/raw/taubench\n"
+        "curl -L -o data/raw/taubench/o4-mini_airline.json \\\n"
+        "  https://raw.githubusercontent.com/sierra-research/tau2-bench/"
+        "033bf082f48e4a3c6a1256208e93cf2ce9c3bb6f/data/tau2/results/final/"
+        "o4-mini-2025-04-16_airline_default_gpt-4.1-2025-04-14_4trials.json\n"
         "python scripts/normalize_traces.py --dataset taubench \\\n"
-        "  --input path/to/results.json \\\n"
-        "  --output outputs/taubench/normalized.jsonl"
+        "  --input data/raw/taubench/o4-mini_airline.json \\\n"
+        "  --output outputs/taubench/normalized.jsonl\n"
+        "# Other models and domains: see 'Loading CRMArena and tau-bench' in README.md"
     ),
     "crmarena": (
         "git clone https://github.com/SalesforceAIResearch/CRMArena.git /tmp/crmarena\n"
