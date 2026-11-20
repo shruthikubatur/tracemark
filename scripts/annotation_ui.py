@@ -678,6 +678,7 @@ def default_label_document(episode_id: str) -> dict[str, Any]:
         "looping": {"present": False},
         "external_system": {"present": False},
         "notes": "",
+        "agent_final_result": "",
     }
 
 
@@ -886,6 +887,7 @@ def _coerce_loaded_document(row: dict[str, Any], episode_id: str) -> dict[str, A
         "looping",
         "external_system",
         "notes",
+        "agent_final_result",
         "is_failure_trace",
         "trace_id",
     )
@@ -1600,6 +1602,10 @@ def main() -> None:
         },
         expanded=False,
     )
+    agent_final_result_key = f"agent_final_result::{selected_episode}"
+    agent_final_result = str(
+        st.session_state.get(agent_final_result_key, doc.get("agent_final_result") or "")
+    )
 
     st.subheader("Outcome evidence")
     ds = str(trace.get("dataset_name", "")).lower()
@@ -1607,6 +1613,7 @@ def main() -> None:
         trace,
         intercode_root=intercode_root if ds in {"intercode_sql", "intercode"} else None,
     )
+    outcome_evidence["agent_final_result"] = agent_final_result.strip() or None
     gh = outcome_evidence.get("grading_hint")
     if isinstance(gh, str) and gh.strip():
         st.caption(gh)
@@ -1702,6 +1709,13 @@ def main() -> None:
             key=f"ext_conf::{selected_episode}",
         )
 
+    agent_final_result = st.text_area(
+        "Agent final result",
+        value=str(doc.get("agent_final_result") or ""),
+        height=50,
+        key=agent_final_result_key,
+        help="Record the final result produced by the agent. This is saved with your labels.",
+    )
     notes = st.text_area("Trajectory notes (`notes`)", value=str(doc.get("notes") or ""), height=100, key=f"notes::{selected_episode}")
 
     sl, e_step = step_labels_from_rows(edited_step_rows)
@@ -1721,6 +1735,7 @@ def main() -> None:
             "looping": loop_final,
             "external_system": ext_final,
             "notes": notes.strip(),
+            "agent_final_result": agent_final_result.strip(),
         }
         if val_errors:
             st.error("Fix validation errors before save:\n" + "\n".join(val_errors))
@@ -1753,6 +1768,7 @@ def main() -> None:
                 "looping": loop_final,
                 "external_system": ext_final,
                 "notes": notes.strip(),
+                "agent_final_result": agent_final_result.strip(),
             }
             annotation_rows[selected_episode] = out_row
             save_annotations(annotations_path, annotation_rows)
