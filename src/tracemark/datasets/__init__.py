@@ -3,10 +3,12 @@
 from tracemark.datasets.base import BaseDatasetAdapter
 from tracemark.datasets.crmarena import CRMArenaAdapter
 from tracemark.datasets.taubench import TauBenchAdapter
+from tracemark.datasets.who_and_when import WhoAndWhenAdapter
 
 ADAPTERS = {
     "crmarena": CRMArenaAdapter,
     "taubench": TauBenchAdapter,
+    "who_and_when": WhoAndWhenAdapter,
 }
 
 
@@ -18,4 +20,4 @@ def get_adapter(name: str) -> BaseDatasetAdapter:
     return ADAPTERS[key]()
 
 
-__all__ = ["ADAPTERS", "BaseDatasetAdapter", "CRMArenaAdapter", "TauBenchAdapter", "get_adapter"]
+__all__ = ["ADAPTERS", "BaseDatasetAdapter", "CRMArenaAdapter", "TauBenchAdapter", "WhoAndWhenAdapter", "get_adapter"]
