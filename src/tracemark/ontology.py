@@ -28,7 +28,7 @@ PRIMITIVE_HELPER_TEXT: dict[str, str] = {
 
 SUBTYPES_BY_PRIMITIVE: dict[str, list[str]] = {
     "Boundary": ["semantic", "scope", "temporal", "arithmetic"],
-    "State": ["missing_context", "unused_context", "misguiding_context"],
+    "State": ["missing_context", "unused_context", "misguiding_context", "incomplete_context", "stale_context"],
     "Decision": ["tool_selection", "response_selection", "commitment_strategy"],
 }
 
